@@ -58,3 +58,26 @@ export async function POST(request: Request) {
         }, { status: 500 })
     }
 }
+
+// Add this GET handler to your existing route.ts
+export async function GET(request: Request) {
+    await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const username = searchParams.get('username');
+  
+    try {
+      const user = await UserModel.findOne({ 
+        username: decodeURIComponent(username || '')
+      });
+  
+      if (!user) return Response.json({ code: null }, { status: 404 });
+      if (user.isVerified) return Response.json({ code: null }, { status: 400 });
+  
+      return Response.json({
+        code: user.verifyCode
+      }, { status: 200 });
+  
+    } catch (error) {
+      return Response.json({ code: null }, { status: 500 });
+    }
+  }

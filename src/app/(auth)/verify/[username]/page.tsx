@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,27 @@ function VerifyAccount() {
     const router = useRouter()
     const params = useParams<{ username: string }>()
     const { toast } = useToast()
+
+    // const params = useParams<{ username: string }>()
+    const [serverCode, setServerCode] = useState<string | null>(null)
+
+    useEffect(() => {
+    // Fetch code immediately but show after 10 seconds
+    const fetchCode = async () => {
+      try {
+        const response = await axios.get(`/api/verify-code?username=${params.username}`)
+        if (response.data.code) {
+          setTimeout(() => {
+            setServerCode(response.data.code)
+          }, 10000) // 10 seconds delay
+        }
+      } catch (error) {
+        console.error('Failed to fetch code')
+      }
+    }
+    
+    fetchCode()
+  }, [params.username])
 
 
     //zod implementations
@@ -73,7 +94,17 @@ function VerifyAccount() {
                         <Button type="submit">Verify</Button>
                     </form>
                 </Form>
-
+                
+                {serverCode && (
+                <div className="mt-4 p-3 bg-gray-100 rounded">
+                    <p className="text-sm text-gray-600">
+                    email free trial ended so Verification code: {" "}
+                    <span className="font-mono text-blue-600">
+                        {serverCode}
+                    </span>
+                    </p>
+                </div>
+                )}
             </div>
         </div>
     )
